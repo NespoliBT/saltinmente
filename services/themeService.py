@@ -7,9 +7,8 @@ def getRandomTheme(themes, themesData):
     themeName = themesData[theme][0]
 
     themeSolutions = themesData[theme]
-    themeSolutions.pop(0)
 
-    firstLetter = random.choice(themeSolutions)[0]
+    firstLetter = random.choice(themeSolutions[1:])[0]
 
     themeSolutions = filter(
         lambda x: x.startswith(firstLetter), themeSolutions)

@@ -59,7 +59,7 @@ async def play(client, message):
 
     [themeName, firstLetter, themeSolutions] = themeGroupMap[groupid]
 
-    if(message.text in themeSolutions):
+    if(message.text.lower() in themeSolutions):
 
         # Aggiorna punteggio
         if not currentScore.get(groupid):
