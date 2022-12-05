@@ -12,6 +12,7 @@ queue = {}
 playing = []
 themeGroupMap = {}
 currentScore = {}
+wantToSkip = {}
 
 themesFile = open('themes.json')
 themesData = json.load(themesFile)
@@ -19,7 +20,7 @@ themes = tuple(themesData.keys())
 
 scoreboardData = json.load(open('scores.json'))
 scoreboardDataDict = dict(scoreboardData)
-print(scoreboardDataDict)
+
 
 usersNeededToPlay = 2
 winCondition = 5
@@ -31,10 +32,35 @@ def checkIfPlaying(a, b, query):
 
 isPlaying = filters.create(checkIfPlaying)
 
+@app.on_message(filters.command("balza") & isPlaying & filters.group)
+async def balza(client, message):
+    [userid, username, groupid, firstName] = getMessageInfo(message)
+    userNicename = username if username else firstName
+    logging.info(
+        f"[{userid}] {userNicename} Group: {groupid}: \n {message.text}")
+    
+    if not wantToSkip.get(groupid):
+        wantToSkip[groupid] = [
+            userid
+        ]
+
+    groupWantToSkip = wantToSkip[groupid]
+    groupWantToSkip[:] = [x for x in groupWantToSkip if x != userid]
+    groupWantToSkip.append(userid)
+
+    print(groupWantToSkip)
+
+    if len(groupWantToSkip) >= usersNeededToPlay:
+        wantToSkip.pop(groupid)
+        themeGroupMap[groupid] = getRandomTheme(themes, themesData)
+
+        await message.reply(f"""
+    Tema: {themeGroupMap[groupid][0]}
+    Prima lettera: {themeGroupMap[groupid][1]}
+            """)
 
 @app.on_message(filters.command("score") & filters.group)
 async def score(client, message):
-    print("asdasd")
     [userid, username, groupid, firstName] = getMessageInfo(message)
     userNicename = username if username else firstName
     logging.info(
@@ -57,7 +83,7 @@ async def saltinmente(client, message):
     userNicename = username if username else firstName
     logging.info(
         f"[{userid}] {userNicename} Group: {groupid}: \n {message.text}")
-    print("ciao")
+
     if not queue.get(groupid):
         queue[groupid] = [
             userid
@@ -69,7 +95,7 @@ async def saltinmente(client, message):
 
     if len(groupQueue) >= usersNeededToPlay:
         themeGroupMap[groupid] = getRandomTheme(themes, themesData)
-        print(themeGroupMap[groupid])
+
         await message.reply(f"""
 💡 Partita iniziata 💡
 Tema: {themeGroupMap[groupid][0]}
@@ -78,6 +104,7 @@ Prima lettera: {themeGroupMap[groupid][1]}
 
         queue.pop(groupid)
         playing.append(groupid)
+
 
 
 @app.on_message(isPlaying)
